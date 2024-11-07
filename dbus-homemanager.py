@@ -69,8 +69,8 @@ class DbusENERTYService:
         if self.module_m._read_data(timeout=1):
             self.module_m._decode_data()
         else:
-            if self.module_m.last_update + 2 < time.time():
-                logging.error('No data received from Module M for 2 seconds, setting all values to zero')
+            if self.module_m.last_update + 20 < time.time():
+                logging.error('No data received from Module M for 20 seconds, setting all values to zero')
                 self.module_m.mmdata.set_all_to_zero()
 
         with contextlib.suppress(KeyError):

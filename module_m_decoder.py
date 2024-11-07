@@ -101,7 +101,7 @@ class ModuleM:
             print('wrong magic start')
             return
         
-        if ["B", "C"] not in self.datagram[1:2]:
+        if self.datagram[1:2] not in ["B", "C"]:
             print('command not recognized')
             return
         self.last_update = time.time()
