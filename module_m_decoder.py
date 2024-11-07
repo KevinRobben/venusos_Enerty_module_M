@@ -98,11 +98,11 @@ class ModuleM:
     def _decode_data(self):    
             
         if self.datagram[:1] != b'*':
-            print('wrong magic start')
+            print('wrong magic start: ', self.datagram)
             return
         
         if self.datagram[1:2] not in ["B", "C"]:
-            print('command not recognized')
+            print('command not recognized: ', self.datagram)
             return
         self.last_update = time.time()
         
