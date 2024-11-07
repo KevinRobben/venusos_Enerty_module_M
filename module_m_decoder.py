@@ -76,6 +76,7 @@ class ModuleM:
                 return False
 
         if not self.mmregistered:
+            print("Registering VictronGX, sending *A")
             self.ser.write(b'*A\n') # RegisterVictronGX_sendBackConfirmation
 
         ready = self.ser.in_waiting > 0
@@ -84,6 +85,10 @@ class ModuleM:
             return False
 
         self.datagram = self.ser.read(self.ser.in_waiting)
+        if len(self.datagram) >= 2 and self.datagram[0:2] == b'*B': # RegisterVictronGXConfirmation
+                self.mmregistered = True
+                print("Module M registered")
+                return False
         if len(self.datagram) < 41: # too short
             return False
         
@@ -100,10 +105,6 @@ class ModuleM:
             print('command not recognized')
             return
         self.last_update = time.time()
-        
-        if self.datagram[1:2] == b'B': # RegisterVictronGXConfirmation
-            self.mmregistered = True
-            return
         
         if not self.mmregistered:
             print('module m not registered, trowing away data')
