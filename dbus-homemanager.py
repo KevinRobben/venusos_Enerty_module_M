@@ -8,7 +8,7 @@ from dbus.mainloop.glib import DBusGMainLoop
 import sys
 import os
 import _thread as thread
-from homemanager_decoder import HomeManager20, MCAST_GRP
+from module_m_decoder import ModuleM, MCAST_GRP
 
 # necessary packages from victron
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), '/opt/victronenergy/dbus-systemcalc-py/ext/velib_python')) # './ext/velib_python'
@@ -17,9 +17,9 @@ from vedbus import VeDbusService
 VERSION = '2024.01'
 
 
-class DbusSmaService:
-    def __init__(self, servicename, deviceinstance, productname='Home Manager 2.0 dbus-bridge'):
-        self.home_manager = HomeManager20()
+class DbusENERTYService:
+    def __init__(self, servicename, deviceinstance, productname='ENERTY Module M reciever'):
+        self.module_m = ModuleM()
 
         # Read data from Home Manager once to get the serial number and firmware version
         # if not self.home_manager._read_data(timeout=10):
@@ -53,72 +53,73 @@ class DbusSmaService:
         self._dbusservice.add_path('/Ac/L1/Power', 0, gettextcallback=self._get_text_for_w)
         self._dbusservice.add_path('/Ac/L2/Power', 0, gettextcallback=self._get_text_for_w)
         self._dbusservice.add_path('/Ac/L3/Power', 0, gettextcallback=self._get_text_for_w)
-        self._dbusservice.add_path('/Ac/L1/Energy/Forward', 0, gettextcallback=self._get_text_for_kwh)
-        self._dbusservice.add_path('/Ac/L2/Energy/Forward', 0, gettextcallback=self._get_text_for_kwh)
-        self._dbusservice.add_path('/Ac/L3/Energy/Forward', 0, gettextcallback=self._get_text_for_kwh)
-        self._dbusservice.add_path('/Ac/L1/Energy/Reverse', 0, gettextcallback=self._get_text_for_kwh)
-        self._dbusservice.add_path('/Ac/L2/Energy/Reverse', 0, gettextcallback=self._get_text_for_kwh)
-        self._dbusservice.add_path('/Ac/L3/Energy/Reverse', 0, gettextcallback=self._get_text_for_kwh)
-        self._dbusservice.add_path('/Ac/Energy/Forward', 0, gettextcallback=self._get_text_for_kwh)
-        self._dbusservice.add_path('/Ac/Energy/Reverse', 0, gettextcallback=self._get_text_for_kwh)
+        # self._dbusservice.add_path('/Ac/L1/Energy/Forward', 0, gettextcallback=self._get_text_for_kwh)
+        # self._dbusservice.add_path('/Ac/L2/Energy/Forward', 0, gettextcallback=self._get_text_for_kwh)
+        # self._dbusservice.add_path('/Ac/L3/Energy/Forward', 0, gettextcallback=self._get_text_for_kwh)
+        # self._dbusservice.add_path('/Ac/L1/Energy/Reverse', 0, gettextcallback=self._get_text_for_kwh)
+        # self._dbusservice.add_path('/Ac/L2/Energy/Reverse', 0, gettextcallback=self._get_text_for_kwh)
+        # self._dbusservice.add_path('/Ac/L3/Energy/Reverse', 0, gettextcallback=self._get_text_for_kwh)
+        # self._dbusservice.add_path('/Ac/Energy/Forward', 0, gettextcallback=self._get_text_for_kwh)
+        # self._dbusservice.add_path('/Ac/Energy/Reverse', 0, gettextcallback=self._get_text_for_kwh)
         self._dbusservice.add_path('/Ac/Current', 0, gettextcallback=self._get_text_for_a)
 
         gobject.timeout_add(1000, self._update)
 
     def _update(self):
-        if self.home_manager._read_data(timeout=1):
-            self.home_manager._decode_data()
+        if self.module_m._read_data(timeout=1):
+            self.module_m._decode_data()
         else:
-            if self.home_manager.last_update + 2 < time.time():
-                logging.error('No data received from Home Manager for 2 seconds, setting all values to zero')
-                self.home_manager.hmdata = {}
+            if self.module_m.last_update + 2 < time.time():
+                logging.error('No data received from Module M for 2 seconds, setting all values to zero')
+                self.module_m.hmdata = {}
             
-        if not self.home_manager.hmdata.get('serial', False):
+        if not self.module_m.hmdata.get('serial', False):
             print("No serial number found, aborting update")
             return True
 
         with contextlib.suppress(KeyError):
             # Check if the Home Manager is single phase or three phase
-            if self.home_manager.hmdata.get('current_L2', False) is False and self.home_manager.hmdata.get('current_L3', False) is False:
+            if self.module_m.mmdata.I2 == 0 and self.module_m.mmdata.I3 == 0:
                 single_phase = True
             else:
                 single_phase = False
             
             # Calculate the total current
             if single_phase:
-                current = self.home_manager.hmdata.get('current_L1', 0)
+                current = self.module_m.mmdata.I1
             else:
-                current = round((self.home_manager.hmdata.get('current_L1', 0) + self.home_manager.hmdata.get('current_L2', 0) +
-                                self.home_manager.hmdata.get('current_L3', 0)) / 3, 3)
+                current = round((self.module_m.mmdata.I1 + self.module_m.mmdata.I2 +
+                                self.module_m.mmdata.I3) / 3, 3)
                 
             self._dbusservice['/Ac/Current'] = current
-            self._dbusservice['/Ac/Power'] = self.home_manager.hmdata.get('positive_active_demand', 0) - \
-                                             self.home_manager.hmdata.get('negative_active_demand', 0)
+
+            P1 = self.module_m.mmdata.P1 if self.module_m.mmdata.export_CT1 else -self.module_m.mmdata.P1 # W
+            P2 = self.module_m.mmdata.P2 if self.module_m.mmdata.export_CT2 else -self.module_m.mmdata.P2 # W
+            P3 = self.module_m.mmdata.P3 if self.module_m.mmdata.export_CT3 else -self.module_m.mmdata.P3 # W
+
+            self._dbusservice['/Ac/Power'] = (P1 + P2 + P2) / 1000  #kw
             
-            self._dbusservice['/Ac/Energy/Forward'] = self.home_manager.hmdata.get('positive_active_energy', 0)
-            self._dbusservice['/Ac/Energy/Reverse'] = self.home_manager.hmdata.get('negative_active_energy', 0)
+            # self._dbusservice['/Ac/Energy/Forward'] = self.module_m.hmdata.get('positive_active_energy', 0)
+            # self._dbusservice['/Ac/Energy/Reverse'] = self.module_m.hmdata.get('negative_active_energy', 0)
 
 
-            self._dbusservice['/Ac/L1/Voltage'] = self.home_manager.hmdata.get('voltage_L1', 0)
-            self._dbusservice['/Ac/L2/Voltage'] = self.home_manager.hmdata.get('voltage_L2', 0)
-            self._dbusservice['/Ac/L3/Voltage'] = self.home_manager.hmdata.get('voltage_L3', 0)
-            self._dbusservice['/Ac/L1/Current'] = self.home_manager.hmdata.get('current_L1', 0)
-            self._dbusservice['/Ac/L2/Current'] = self.home_manager.hmdata.get('current_L2', 0)
-            self._dbusservice['/Ac/L3/Current'] = self.home_manager.hmdata.get('current_L3', 0)
+            self._dbusservice['/Ac/L1/Voltage'] = self.module_m.mmdata.U1 / 1000
+            self._dbusservice['/Ac/L2/Voltage'] = self.module_m.mmdata.U2 / 1000
+            self._dbusservice['/Ac/L3/Voltage'] = self.module_m.mmdata.U3 / 1000
+            self._dbusservice['/Ac/L1/Current'] = self.module_m.mmdata.I1 / 1000
+            self._dbusservice['/Ac/L2/Current'] = self.module_m.mmdata.I2 / 1000
+            self._dbusservice['/Ac/L3/Current'] = self.module_m.mmdata.I3 / 1000
 
-            self._dbusservice['/Ac/L1/Power'] = self.home_manager.hmdata.get('positive_active_demand_L1', 0) - \
-                                                self.home_manager.hmdata.get('negative_active_demand_L1', 0)
-            self._dbusservice['/Ac/L2/Power'] = self.home_manager.hmdata.get('positive_active_demand_L2', 0) - \
-                                                self.home_manager.hmdata.get('negative_active_demand_L2', 0)
-            self._dbusservice['/Ac/L3/Power'] = self.home_manager.hmdata.get('positive_active_demand_L3', 0) - \
-                                                self.home_manager.hmdata.get('negative_active_demand_L3', 0)
+            self._dbusservice['/Ac/L1/Power'] = P1 / 1000
+            self._dbusservice['/Ac/L2/Power'] = P2 / 1000
+            self._dbusservice['/Ac/L3/Power'] = P3 / 1000
             
-            self._dbusservice['/Ac/L1/Energy/Forward'] = self.home_manager.hmdata.get('positive_active_energy_L1', 0)
-            self._dbusservice['/Ac/L2/Energy/Forward'] = self.home_manager.hmdata.get('positive_active_energy_L2', 0)
-            self._dbusservice['/Ac/L3/Energy/Forward'] = self.home_manager.hmdata.get('positive_active_energy_L3', 0)
-            self._dbusservice['/Ac/L1/Energy/Reverse'] = self.home_manager.hmdata.get('negative_active_energy_L1', 0)
-            self._dbusservice['/Ac/L2/Energy/Reverse'] = self.home_manager.hmdata.get('negative_active_energy_L2', 0)
-            self._dbusservice['/Ac/L3/Energy/Reverse'] = self.home_manager.hmdata.get('negative_active_energy_L3', 0)
+            # self._dbusservice['/Ac/L1/Energy/Forward'] = self.module_m.hmdata.get('positive_active_energy_L1', 0)
+            # self._dbusservice['/Ac/L2/Energy/Forward'] = self.module_m.hmdata.get('positive_active_energy_L2', 0)
+            # self._dbusservice['/Ac/L3/Energy/Forward'] = self.module_m.hmdata.get('positive_active_energy_L3', 0)
+            # self._dbusservice['/Ac/L1/Energy/Reverse'] = self.module_m.hmdata.get('negative_active_energy_L1', 0)
+            # self._dbusservice['/Ac/L2/Energy/Reverse'] = self.module_m.hmdata.get('negative_active_energy_L2', 0)
+            # self._dbusservice['/Ac/L3/Energy/Reverse'] = self.module_m.hmdata.get('negative_active_energy_L3', 0)
         return True
 
     def _handle_changed_value(self, value):
@@ -142,7 +143,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     thread.daemon = True
     DBusGMainLoop(set_as_default=True)
-    DbusSmaService(servicename='com.victronenergy.grid.tcpip_239_12_255_254', deviceinstance=40)
+    DbusENERTYService(servicename='com.victronenergy.grid.tcpip_239_12_255_254', deviceinstance=40)
     logging.info('Connected to dbus, switching over to gobject.MainLoop()')
     mainloop = gobject.MainLoop()
     mainloop.run()
