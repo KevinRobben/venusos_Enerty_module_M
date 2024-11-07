@@ -71,11 +71,7 @@ class DbusENERTYService:
         else:
             if self.module_m.last_update + 2 < time.time():
                 logging.error('No data received from Module M for 2 seconds, setting all values to zero')
-                self.module_m.hmdata = {}
-            
-        if not self.module_m.hmdata.get('serial', False):
-            print("No serial number found, aborting update")
-            return True
+                self.module_m.mmdata.set_all_to_zero()
 
         with contextlib.suppress(KeyError):
             # Check if the Home Manager is single phase or three phase

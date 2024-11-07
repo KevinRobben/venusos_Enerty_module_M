@@ -44,6 +44,17 @@ class VictronSerialAmpsAndVoltage:
         self.P1: int = 0 # Watt
         self.P2: int = 0
         self.P3: int = 0 
+    
+    def set_all_to_zero(self):
+        self.I1 = 0
+        self.I2 = 0
+        self.I3 = 0
+        self.U1 = 0
+        self.U2 = 0
+        self.U3 = 0
+        self.P1 = 0
+        self.P2 = 0
+        self.P3 = 0
 
 
 class ModuleM:
