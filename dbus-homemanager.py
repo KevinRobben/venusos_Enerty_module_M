@@ -8,7 +8,7 @@ from dbus.mainloop.glib import DBusGMainLoop
 import sys
 import os
 import _thread as thread
-from module_m_decoder import ModuleM, MCAST_GRP
+from module_m_decoder import ModuleM
 
 # necessary packages from victron
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), '/opt/victronenergy/dbus-systemcalc-py/ext/velib_python')) # './ext/velib_python'
@@ -33,7 +33,7 @@ class DbusENERTYService:
         # Register management objects, see dbus-api for more information
         self._dbusservice.add_path('/Mgmt/ProcessName', productname)
         self._dbusservice.add_path('/Mgmt/ProcessVersion', VERSION)
-        self._dbusservice.add_path('/Mgmt/Connection', f'TCP/IP multicast group {MCAST_GRP}')
+        self._dbusservice.add_path('/Mgmt/Connection', f'TCP/IP multicast group TESTHI')
 
         # Register mandatory objects
         self._dbusservice.add_path('/DeviceInstance', deviceinstance)
