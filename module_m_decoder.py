@@ -10,6 +10,7 @@ import serial.tools.list_ports
 VID = 0x239A
 PID = 0x80A4
 port_name = None
+WINDOWS = False
 
 """struct VictronSerialAmpsAndVoltage {
         uint8_t magic_start; // * 
@@ -146,6 +147,9 @@ class ModuleM:
         if port_name is None:
             logging.error('No Module M found')
             return False
+        
+        if not WINDOWS:
+            port_name = f"/dev/{port_name}"
         
         self.ser = serial.Serial(port_name, 115200, timeout=1)
         return True
