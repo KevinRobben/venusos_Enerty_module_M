@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 import select
 import struct
 import logging
@@ -28,21 +27,22 @@ port_name = None
         uint32_t P2;
         uint32_t P3;
     };"""
-@dataclass
+
 class VictronSerialAmpsAndVoltage:
-    command: int
-    export_CT1: bool
-    export_CT2: bool
-    export_CT3: bool
-    I1: int # mA
-    I2: int
-    I3: int
-    U1: int # mV
-    U2: int
-    U3: int
-    P1: int # Watt
-    P2: int
-    P3: int 
+    def __init__(self) -> None:
+        self.command: int = 0
+        self.export_CT1: bool = False
+        self.export_CT2: bool = False
+        self.export_CT3: bool = False
+        self.I1: int = 0 # mA
+        self.I2: int = 0
+        self.I3: int = 0
+        self.U1: int = 0 # mV
+        self.U2: int = 0
+        self.U3: int = 0
+        self.P1: int = 0 # Watt
+        self.P2: int = 0
+        self.P3: int = 0 
 
 
 class ModuleM:
@@ -50,7 +50,7 @@ class ModuleM:
     def __init__(self):
         self.ser: serial.Serial = None
         self.datagram = None
-        self.mmdata = VictronSerialAmpsAndVoltage(0, False, False, False, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        self.mmdata = VictronSerialAmpsAndVoltage()
         self.mmregistered = False # module m registered with *B command
         self.last_update = time.time()
             

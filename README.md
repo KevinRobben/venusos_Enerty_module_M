@@ -15,7 +15,7 @@ I recommend creating a subdirectory inside the `/data` directory to prevent Venu
 mkdir /data/drivers
 cd /data/drivers
 git clone --recurse-submodules https://github.com/KevinRobben/venusos_Enerty_module_M.git
-cd venus-homemanager
+cd venusos_Enerty_module_M
 chmod +x install.sh
 ./install.sh
 ```
