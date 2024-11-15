@@ -1,5 +1,9 @@
 # venus-ENERTY module M service
 forked from https://github.com/c0deliner/venus-homemanager
+
+## Documentation
+https://github.com/victronenergy/venus/wiki/howto-add-a-driver-to-Venus
+
 ## Purpose
 This service is meant to be run on VenusOS from Victron.
 
