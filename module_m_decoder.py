@@ -77,7 +77,11 @@ class ModuleM:
 
         if not self.mmregistered:
             print("Registering VictronGX, sending *A")
-            self.ser.write(b'*A\n') # RegisterVictronGX_sendBackConfirmation
+            try:
+                self.ser.write(b'*A\n') # RegisterVictronGX_sendBackConfirmation
+            except serial.SerialException as e:
+                logging.error('Could not write to serial port: %s', e.args[0])
+                return False
 
         ready = self.ser.in_waiting > 0
 
