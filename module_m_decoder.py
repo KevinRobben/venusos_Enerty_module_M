@@ -10,7 +10,7 @@ import serial.tools.list_ports
 VID = 0x239A
 PID = 0x80A4
 port_name = None
-WINDOWS = False
+WINDOWS = sys.platform.startswith('win')
 
 """struct VictronSerialAmpsAndVoltage {
         uint8_t magic_start; // * 
@@ -70,8 +70,8 @@ class ModuleM:
 
 
 
-    def _read_data(self, timeout:int):
-        if not self.ser:
+    def _read_data(self):
+        if not self.ser or self.ser.is_open == False:
             if not self._connect_serial():
                 return False
 
@@ -165,23 +165,34 @@ class ModuleM:
         
         if not WINDOWS:
             port_name = f"/dev/{port_name}"
+
+        if self.ser:
+            self.ser.close()
+            self.mmregistered = False
+
+        try:
+            self.ser = serial.Serial(port_name, 115200, timeout=1)
+        except Exception as e:
+            logging.error('Could not connect to Module M: Exception when within init serial port: %s', e.args[0])
+            self.ser = None
+            return False
         
-        self.ser = serial.Serial(port_name, 115200, timeout=1)
         return True
         
 
 
 if __name__ == "__main__":
-    # sma = ModuleM()
+    sma = ModuleM()
     for port in serial.tools.list_ports.comports():
             print(port.vid, port.pid, "desc", port.name)
-    exit()
+    
     while True:
-        if sma._read_data(timeout=1):
+        if sma._read_data():
             sma._decode_data()
             print(sma.hmdata)
         else:
             if sma.last_update + 5 < time.time():
                 print('not updated for 5 seconds')
                 sma.hmdata = {}
+        time.sleep(1)
     

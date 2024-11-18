@@ -66,12 +66,15 @@ class DbusENERTYService:
         gobject.timeout_add(1000, self._update)
 
     def _update(self):
-        if self.module_m._read_data(timeout=1):
+        if self.module_m._read_data():
             self.module_m._decode_data()
         else:
             if self.module_m.last_update + 20 < time.time():
-                logging.error('No data received from Module M for 20 seconds, setting all values to zero')
+                logging.error('No data received from Module M for 20 seconds, setting all values to zero and trying to reconnect')
                 self.module_m.mmdata.set_all_to_zero()
+                self.module_m.last_update = time.time()
+                # try to reconnect to the serial port, the port might have been disconnected (physically or by the OS)
+                self.module_m._connect_serial()
 
         with contextlib.suppress(KeyError):
             # Check if the Home Manager is single phase or three phase
