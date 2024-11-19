@@ -88,13 +88,13 @@ class DbusENERTYService:
                 current = self.module_m.mmdata.I1
             else:
                 current = round((self.module_m.mmdata.I1 + self.module_m.mmdata.I2 +
-                                self.module_m.mmdata.I3) / 3, 3)
+                                self.module_m.mmdata.I3) / 1000, 3)
                 
             self._dbusservice['/Ac/Current'] = current
 
-            P1 = self.module_m.mmdata.P1 if self.module_m.mmdata.export_CT1 else -self.module_m.mmdata.P1 # W
-            P2 = self.module_m.mmdata.P2 if self.module_m.mmdata.export_CT2 else -self.module_m.mmdata.P2 # W
-            P3 = self.module_m.mmdata.P3 if self.module_m.mmdata.export_CT3 else -self.module_m.mmdata.P3 # W
+            P1 = -self.module_m.mmdata.P1 if self.module_m.mmdata.export_CT1 else self.module_m.mmdata.P1 # W
+            P2 = -self.module_m.mmdata.P2 if self.module_m.mmdata.export_CT2 else self.module_m.mmdata.P2 # W
+            P3 = -self.module_m.mmdata.P3 if self.module_m.mmdata.export_CT3 else self.module_m.mmdata.P3 # W
 
             self._dbusservice['/Ac/Power'] = (P1 + P2 + P2) / 1000  #kw
             
