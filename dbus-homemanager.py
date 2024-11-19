@@ -33,7 +33,7 @@ class DbusENERTYService:
         # Register management objects, see dbus-api for more information
         self._dbusservice.add_path('/Mgmt/ProcessName', productname)
         self._dbusservice.add_path('/Mgmt/ProcessVersion', VERSION)
-        self._dbusservice.add_path('/Mgmt/Connection', f'TCP/IP multicast group TESTHI')
+        self._dbusservice.add_path('/Mgmt/Connection', f'LORA connection')
 
         # Register mandatory objects
         self._dbusservice.add_path('/DeviceInstance', deviceinstance)

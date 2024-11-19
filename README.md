@@ -25,3 +25,11 @@ chmod +x install.sh
 ```
 
 or do something like this (from another repo): Add *python /home/root/sma_energy_meter.py &* to your */data/rc.local* for 
+
+
+## developer installation
+
+git pull to update the driver
+
+in rc.local to run at startup
+ln -s /data/drivers/venusos_Enerty_module_M/service /service/venus-homemanager
