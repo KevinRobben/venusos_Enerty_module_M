@@ -96,7 +96,7 @@ class DbusENERTYService:
             P2 = -self.module_m.mmdata.P2 if self.module_m.mmdata.export_CT2 else self.module_m.mmdata.P2 # W
             P3 = -self.module_m.mmdata.P3 if self.module_m.mmdata.export_CT3 else self.module_m.mmdata.P3 # W
 
-            self._dbusservice['/Ac/Power'] = (P1 + P2 + P2) / 1000  #kw
+            self._dbusservice['/Ac/Power'] = (P1 + P2 + P3) / 1000  #kw
             
             # self._dbusservice['/Ac/Energy/Forward'] = self.module_m.hmdata.get('positive_active_energy', 0)
             # self._dbusservice['/Ac/Energy/Reverse'] = self.module_m.hmdata.get('negative_active_energy', 0)
