@@ -90,17 +90,18 @@ class ModuleM:
             return False
 
         try:
-            ready = self.ser.in_waiting > 0
+            in_waiting = self.ser.in_waiting
+            ready = in_waiting > 0
         except OSError as e:
             logging.error('Could not read from serial port, probably its is disconnected: %s', e.args[0])
             self._connect_serial() # try to reconnect, if the serial port is disconnected set mmregistered to False
             return False
 
-        if not ready:
+        if not ready and self.datagram == b'':
             # print('no data ready')
             return False
 
-        self.datagram += self.ser.read(self.ser.in_waiting)
+        self.datagram += self.ser.read(in_waiting)
         while len(self.datagram) > 1 and self.datagram[:1] != b'*': # remove garbage data
             print('removing garbage data: ', self.datagram[:1])
             self.datagram = self.datagram[1:]
@@ -193,7 +194,7 @@ class ModuleM:
             self.ser = serial.Serial()
             self.ser.port = port_name
             self.ser.baudrate = 9600
-            self.ser.timeout = 1
+            self.ser.timeout = None
             self.ser.open()
         except Exception as e:
             logging.error('Could not connect to Module M: Exception when within init serial port: %s', e.args[0])
