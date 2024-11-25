@@ -63,7 +63,7 @@ class DbusENERTYService:
         # self._dbusservice.add_path('/Ac/Energy/Reverse', 0, gettextcallback=self._get_text_for_kwh)
         self._dbusservice.add_path('/Ac/Current', 0, gettextcallback=self._get_text_for_a)
 
-        gobject.timeout_add(1000, self._update)
+        gobject.timeout_add(450, self._update)
 
     def _update(self):
         if self.module_m._read_data():
