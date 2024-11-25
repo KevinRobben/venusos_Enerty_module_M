@@ -56,6 +56,9 @@ class VictronSerialAmpsAndVoltage:
         self.P2 = 0
         self.P3 = 0
 
+    def __str__(self) -> str:
+        return f"command: {self.command}, AC Phase L1: {self.U1 * 1000}V {self.I1 * 1000}A {self.P1}W. AC Phase L2: {self.U2 * 1000}V {self.I2 * 1000}A {self.P2}W. AC Phase L3: {self.U3 * 1000}V {self.I3 * 1000}A {self.P3}W"
+
 
 class ModuleM:
 
@@ -96,6 +99,9 @@ class ModuleM:
             return False
 
         self.datagram = self.ser.read(self.ser.in_waiting)
+        while len(self.datagram) > 1 and self.datagram[:1] != b'*': # remove garbage data
+            self.datagram = self.datagram[1:]
+
         if len(self.datagram) >= 2 and self.datagram[0:2] == b'*B': # RegisterVictronGXConfirmation
                 self.mmregistered = True
                 print("Module M registered")
@@ -108,10 +114,6 @@ class ModuleM:
 
 
     def _decode_data(self):    
-        
-        while len(self.datagram) > 41 and self.datagram[:1] != b'*': # remove garbage data
-            self.datagram = self.datagram[1:]
-
         if self.datagram[:1] != b'*':
             print('wrong magic start: ', self.datagram)
             return
