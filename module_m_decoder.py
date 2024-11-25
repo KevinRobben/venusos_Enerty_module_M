@@ -96,6 +96,7 @@ class ModuleM:
             return False
 
         if not ready:
+            print('no data ready')
             return False
 
         self.datagram = self.ser.read(self.ser.in_waiting)
