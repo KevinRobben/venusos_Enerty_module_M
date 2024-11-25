@@ -195,6 +195,9 @@ class ModuleM:
             self.ser.port = port_name
             self.ser.baudrate = 9600
             self.ser.timeout = None
+            self.ser.bytesize = serial.EIGHTBITS
+            self.ser.parity = serial.PARITY_NONE
+            self.ser.stopbits = serial.STOPBITS_ONE
             self.ser.open()
         except Exception as e:
             logging.error('Could not connect to Module M: Exception when within init serial port: %s', e.args[0])
