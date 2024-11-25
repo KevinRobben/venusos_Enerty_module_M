@@ -85,7 +85,14 @@ class ModuleM:
                 logging.error('Could not write to serial port: %s', e.args[0])
                 return False
 
-        if not self.ser.in_waiting > 0:
+        try:
+            ready = self.ser.in_waiting > 0
+        except OSError as e:
+            logging.error('Could not read from serial port, probably its is disconnected: %s', e.args[0])
+            self._connect_serial() # try to reconnect, if the serial port is disconnected set mmregistered to False
+            return False
+
+        if not ready:
             return False
 
         self.datagram = self.ser.read(self.ser.in_waiting)
