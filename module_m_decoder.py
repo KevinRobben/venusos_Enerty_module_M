@@ -64,7 +64,7 @@ class ModuleM:
 
     def __init__(self):
         self.ser: serial.Serial = None
-        self.datagram = None
+        self.datagram = b""
         self.mmdata = VictronSerialAmpsAndVoltage()
         self.mmregistered = False # module m registered with *B command
         self.last_update = time.time()
@@ -97,16 +97,17 @@ class ModuleM:
             return False
 
         if not ready:
-            print('no data ready')
+            # print('no data ready')
             return False
 
-        self.datagram = self.ser.read(self.ser.in_waiting)
+        self.datagram += self.ser.read(self.ser.in_waiting)
         while len(self.datagram) > 1 and self.datagram[:1] != b'*': # remove garbage data
             print('removing garbage data: ', self.datagram[:1])
             self.datagram = self.datagram[1:]
 
         if len(self.datagram) >= 2 and self.datagram[0:2] == b'*B': # RegisterVictronGXConfirmation
                 self.mmregistered = True
+                self.datagram = self.datagram[2:]
                 print("Module M registered")
                 return False
         if len(self.datagram) < 41: # too short
@@ -119,15 +120,18 @@ class ModuleM:
     def _decode_data(self):    
         if self.datagram[:1] != b'*':
             print('wrong magic start: ', self.datagram)
+            self.datagram = self.datagram[1:]
             return
         
         if self.datagram[1:2] not in [b"B", b"C"]:
             print('command not recognized: ', self.datagram)
+            self.datagram = self.datagram[2:]
             return
         self.last_update = time.time()
         
         if not self.mmregistered:
             print('module m not registered, trowing away data')
+            self.datagram = b""
             return
 
         if self.datagram[1:2] == b'C':  # AmpsAndVoltage
@@ -150,6 +154,7 @@ class ModuleM:
             print(f"Unpacked data length: {len(self.datagram)}")
             # Parse the data. the recieved data is in the form of the above c struct
             unpacked_data = struct.unpack("=2B3B9I", self.datagram[0:41])
+            self.datagram = self.datagram[41:]
 
             self.mmdata.command = unpacked_data[1]
             self.mmdata.export_CT1 = bool(unpacked_data[2])
@@ -165,8 +170,6 @@ class ModuleM:
             self.mmdata.P2 = unpacked_data[12]
             self.mmdata.P3 = unpacked_data[13]
             print("got new data: ", self.mmdata)
-
-    
 
     def _connect_serial(self):
         if self.ser:
@@ -187,8 +190,7 @@ class ModuleM:
             port_name = f"/dev/{port_name}"
 
         try:
-            self.ser = serial.Serial(port_name, 115200, timeout=10)
-            self.ser.set_buffer_size(rx_size=4096, tx_size=4096)
+            self.ser = serial.Serial(port_name, 115200, timeout=1)
         except Exception as e:
             logging.error('Could not connect to Module M: Exception when within init serial port: %s', e.args[0])
             self.ser = None
