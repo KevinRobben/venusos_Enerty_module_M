@@ -130,7 +130,7 @@ class ModuleM:
         self.last_update = time.time()
         
         if not self.mmregistered:
-            print('module m not registered, trowing away data')
+            print('module m not registered, trowing away data', self.datagram)
             self.datagram = b""
             return
 
