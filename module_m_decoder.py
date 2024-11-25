@@ -57,7 +57,7 @@ class VictronSerialAmpsAndVoltage:
         self.P3 = 0
 
     def __str__(self) -> str:
-        return f"command: {self.command}, AC Phase L1: {self.U1 * 1000}V {self.I1 * 1000}A {self.P1}W. AC Phase L2: {self.U2 * 1000}V {self.I2 * 1000}A {self.P2}W. AC Phase L3: {self.U3 * 1000}V {self.I3 * 1000}A {self.P3}W"
+        return f"command: {self.command}, AC Phase L1: {self.U1 / 1000}V {self.I1 / 1000}A {self.P1 / 1000}W. AC Phase L2: {self.U2 / 1000}V {self.I2 / 1000}A {self.P2 / 1000}W. AC Phase L3: {self.U3 / 1000}V {self.I3 / 1000}A {self.P3 / 1000}W"
 
 
 class ModuleM:
@@ -188,6 +188,7 @@ class ModuleM:
 
         try:
             self.ser = serial.Serial(port_name, 115200, timeout=10)
+            self.ser.set_buffer_size(rx_size=4096, tx_size=4096)
         except Exception as e:
             logging.error('Could not connect to Module M: Exception when within init serial port: %s', e.args[0])
             self.ser = None
