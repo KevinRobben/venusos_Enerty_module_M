@@ -86,7 +86,7 @@ class ModuleM:
                 self.ser.write(b'*A\n') # RegisterVictronGX_sendBackConfirmation
             except serial.SerialException as e:
                 logging.error('Could not write to serial port: %s', e.args[0])
-                return False
+            return False
 
         try:
             ready = self.ser.in_waiting > 0
