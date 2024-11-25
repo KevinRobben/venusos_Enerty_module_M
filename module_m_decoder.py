@@ -65,6 +65,7 @@ class ModuleM:
         self.mmdata = VictronSerialAmpsAndVoltage()
         self.mmregistered = False # module m registered with *B command
         self.last_update = time.time()
+        self.mmregistered_last_register_request = time.time()
             
         self._connect_serial()
 
@@ -75,7 +76,7 @@ class ModuleM:
             if not self._connect_serial():
                 return False
 
-        if not self.mmregistered:
+        if not self.mmregistered and time.time() - self.mmregistered_last_register_request > 5:
             print("Registering VictronGX, sending *A")
             try:
                 self.ser.write(b'*A\n') # RegisterVictronGX_sendBackConfirmation
@@ -83,9 +84,7 @@ class ModuleM:
                 logging.error('Could not write to serial port: %s', e.args[0])
                 return False
 
-        ready = self.ser.in_waiting > 0
-
-        if not ready:
+        if not self.ser.in_waiting > 0:
             return False
 
         self.datagram = self.ser.read(self.ser.in_waiting)
@@ -94,6 +93,7 @@ class ModuleM:
                 print("Module M registered")
                 return False
         if len(self.datagram) < 41: # too short
+            print('too short datagram: ', self.datagram)
             return False
         
         return True

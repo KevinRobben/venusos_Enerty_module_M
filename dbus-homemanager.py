@@ -69,7 +69,7 @@ class DbusENERTYService:
         if self.module_m._read_data():
             self.module_m._decode_data()
         else:
-            if self.module_m.last_update + 20 < time.time():
+            if time.time() - self.module_m.last_update > 20:
                 logging.error('No data received from Module M for 20 seconds, setting all values to zero and trying to reconnect')
                 self.module_m.mmdata.set_all_to_zero()
                 self.module_m.last_update = time.time()
