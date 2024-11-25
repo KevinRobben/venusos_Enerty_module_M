@@ -76,6 +76,7 @@ class ModuleM:
 
     def _read_data(self):
         if not self.ser or self.ser.is_open == False:
+            print('serial port not open, trying to reconnect')
             if not self._connect_serial():
                 return False
 
@@ -101,6 +102,7 @@ class ModuleM:
 
         self.datagram = self.ser.read(self.ser.in_waiting)
         while len(self.datagram) > 1 and self.datagram[:1] != b'*': # remove garbage data
+            print('removing garbage data: ', self.datagram[:1])
             self.datagram = self.datagram[1:]
 
         if len(self.datagram) >= 2 and self.datagram[0:2] == b'*B': # RegisterVictronGXConfirmation
