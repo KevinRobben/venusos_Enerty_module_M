@@ -134,7 +134,7 @@ class ModuleM:
             self.datagram = b""
             return
 
-        if self.datagram[1:2] == b'C':  # AmpsAndVoltage
+        if self.datagram[:2] == b'*C':  # AmpsAndVoltage
             """struct VictronSerialAmpsAndVoltage {
                         uint8_t magic_start; // * 
                         uint8_t command;     // C
@@ -192,7 +192,7 @@ class ModuleM:
         try:
             self.ser = serial.Serial()
             self.ser.port = port_name
-            self.ser.baudrate = 115200
+            self.ser.baudrate = 9600
             self.ser.timeout = 1
             self.ser.open()
         except Exception as e:
