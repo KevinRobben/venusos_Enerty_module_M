@@ -77,6 +77,7 @@ class ModuleM:
                 return False
 
         if not self.mmregistered and time.time() - self.mmregistered_last_register_request > 5:
+            self.mmregistered_last_register_request = time.time()
             print("Registering VictronGX, sending *A")
             try:
                 self.ser.write(b'*A\n') # RegisterVictronGX_sendBackConfirmation
