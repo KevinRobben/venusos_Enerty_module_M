@@ -105,7 +105,7 @@ class ModuleM:
         while len(self.datagram) > 1 and self.datagram[:1] != b'*': # remove garbage data
             print('removing garbage data: ', self.datagram[:1])
             self.datagram = self.datagram[1:]
-        if len(self.datagram) == 0:
+        if len(self.datagram) == 1 and self.datagram[0] != b'*': # remove garbage data
             self.datagram = b""
 
         if len(self.datagram) >= 2 and self.datagram[0:2] == b'*B': # RegisterVictronGXConfirmation
