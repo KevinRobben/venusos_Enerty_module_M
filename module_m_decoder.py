@@ -187,7 +187,7 @@ class ModuleM:
             port_name = f"/dev/{port_name}"
 
         try:
-            self.ser = serial.Serial(port_name, 115200, timeout=1)
+            self.ser = serial.Serial(port_name, 115200, timeout=10)
         except Exception as e:
             logging.error('Could not connect to Module M: Exception when within init serial port: %s', e.args[0])
             self.ser = None
