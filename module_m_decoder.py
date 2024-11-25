@@ -166,6 +166,9 @@ class ModuleM:
     
 
     def _connect_serial(self):
+        if self.ser:
+            self.ser.close()
+            self.mmregistered = False
         self.ser = None
         port_name = None
         for port in serial.tools.list_ports.comports():
@@ -179,10 +182,6 @@ class ModuleM:
         
         if not WINDOWS:
             port_name = f"/dev/{port_name}"
-
-        if self.ser:
-            self.ser.close()
-            self.mmregistered = False
 
         try:
             self.ser = serial.Serial(port_name, 115200, timeout=1)
