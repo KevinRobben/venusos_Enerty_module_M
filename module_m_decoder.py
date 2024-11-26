@@ -6,10 +6,13 @@ import sys
 import time
 import serial
 import serial.tools.list_ports
+import subprocess
 
 VID = 0x239A
 PID = 0x80A4
-port_name = None
+
+# Open the serial port
+ser = serial.Serial(None, 9600, timeout=0, rtscts=False, dsrdtr=False, xonxoff=False)
 WINDOWS = sys.platform.startswith('win')
 
 """struct VictronSerialAmpsAndVoltage {
@@ -178,35 +181,27 @@ class ModuleM:
         if self.ser:
             self.ser.close()
             self.mmregistered = False
-        self.ser = None
-        port_name = None
+        
         for port in serial.tools.list_ports.comports():
             if port.vid == VID and port.pid == PID:
                 port_name = port.name
-                break
-
-        if port_name is None:
-            logging.error('No Module M found')
-            return False
+                if not WINDOWS:
+                    port_name = f"/dev/{port_name}"
+                    # make serial-starter ignore this port, and let us do our thing!
+                    try:
+                        subprocess.run(["/opt/victronenergy/serial-starter/stop-tty.sh", port.name])
+                    except subprocess.CalledProcessError as e:
+                        # Handle cases where the command fails
+                        print(f"stop serial starter command CalledProcessError with return code: {e.returncode}")
+                    except FileNotFoundError:
+                        # Handle case where the script is not found
+                        print("The stop serial starter command or script does not exist. Please check the path.")
+                ser.port = port_name
+                print(f"Found Module M on {port_name}")
+                ser.open()
+                return True
         
-        if not WINDOWS:
-            port_name = f"/dev/{port_name}"
-
-        try:
-            self.ser = serial.Serial()
-            self.ser.port = port_name
-            self.ser.baudrate = 9600
-            self.ser.timeout = None
-            self.ser.bytesize = serial.EIGHTBITS
-            self.ser.parity = serial.PARITY_NONE
-            self.ser.stopbits = serial.STOPBITS_ONE
-            self.ser.open()
-        except Exception as e:
-            logging.error('Could not connect to Module M: Exception when within init serial port: %s', e.args[0])
-            self.ser = None
-            return False
-        
-        return True
+        return False
         
 
 
