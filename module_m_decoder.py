@@ -78,6 +78,7 @@ class ModuleM:
             ready = in_waiting > 0
         except Exception as e: # attribute error is thrown when no port passed to serial.Serial
             print("Serial port closed")
+            self.mmregistered = False
             if self.ser.port is not None and self.ser.is_open:
                 self.ser.close()
             for port in serial.tools.list_ports.comports():
