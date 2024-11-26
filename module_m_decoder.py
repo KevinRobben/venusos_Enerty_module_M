@@ -12,7 +12,6 @@ VID = 0x239A
 PID = 0x80A4
 
 # Open the serial port
-ser = serial.Serial(None, 9600, timeout=0, rtscts=False, dsrdtr=False, xonxoff=False)
 WINDOWS = sys.platform.startswith('win')
 
 """struct VictronSerialAmpsAndVoltage {
@@ -66,7 +65,7 @@ class VictronSerialAmpsAndVoltage:
 class ModuleM:
 
     def __init__(self):
-        self.ser: serial.Serial = None
+        self.ser = serial.Serial(None, 9600, timeout=0, rtscts=False, dsrdtr=False, xonxoff=False)
         self.datagram = b""
         self.mmdata = VictronSerialAmpsAndVoltage()
         self.mmregistered = False # module m registered with *B command
@@ -92,9 +91,9 @@ class ModuleM:
                         except FileNotFoundError:
                             # Handle case where the script is not found
                             print("The stop serial starter command or script does not exist. Please check the path.")
-                    ser.port = port_name
+                    self.ser.port = port_name
                     print(f"Found Module M on {port_name}")
-                    ser.open()
+                    self.ser.open()
                     in_waiting = self.ser.in_waiting
                     ready = in_waiting > 0
                     break
