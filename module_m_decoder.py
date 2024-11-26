@@ -76,7 +76,7 @@ class ModuleM:
         try:
             in_waiting = self.ser.in_waiting
             ready = in_waiting > 0
-        except (serial.SerialException, AttributeError): # attribute error is thrown when no port passed to serial.Serial
+        except Exception as e: # attribute error is thrown when no port passed to serial.Serial
             print("Serial port closed")
             for port in serial.tools.list_ports.comports():
                 if port.vid == VID and port.pid == PID:
