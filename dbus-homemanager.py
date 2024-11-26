@@ -70,11 +70,9 @@ class DbusENERTYService:
             self.module_m._decode_data()
         else:
             if time.time() - self.module_m.last_update > 20:
-                logging.error('No data received from Module M for 20 seconds, setting all values to zero and trying to reconnect')
+                logging.error('No data received from Module M for 20 seconds, setting all values to zero')
                 self.module_m.mmdata.set_all_to_zero()
                 self.module_m.last_update = time.time()
-                # try to reconnect to the serial port, the port might have been disconnected (physically or by the OS)
-                self.module_m._connect_serial()
 
         with contextlib.suppress(KeyError):
             # Check if the Home Manager is single phase or three phase

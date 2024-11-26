@@ -72,33 +72,35 @@ class ModuleM:
         self.mmregistered = False # module m registered with *B command
         self.last_update = time.time()
         self.mmregistered_last_register_request = time.time()
-            
-        self._connect_serial()
-
-
 
     def _read_data(self):
-        if not self.ser or self.ser.is_open == False:
-            print('serial port not open, trying to reconnect')
-            if not self._connect_serial():
-                return False
-
-        if not self.mmregistered and time.time() - self.mmregistered_last_register_request > 5:
-            self.mmregistered_last_register_request = time.time()
-            print("Registering VictronGX, sending *A")
-            try:
-                self.ser.write(b'*A\n') # RegisterVictronGX_sendBackConfirmation
-            except serial.SerialException as e:
-                logging.error('Could not write to serial port: %s', e.args[0])
-            return False
-
         try:
             in_waiting = self.ser.in_waiting
             ready = in_waiting > 0
-        except OSError as e:
-            logging.error('Could not read from serial port, probably its is disconnected: %s', e.args[0])
-            self._connect_serial() # try to reconnect, if the serial port is disconnected set mmregistered to False
-            return False
+        except (serial.SerialException, AttributeError): # attribute error is thrown when no port passed to serial.Serial
+            print("Serial port closed")
+            for port in serial.tools.list_ports.comports():
+                if port.vid == VID and port.pid == PID:
+                    port_name = port.name
+                    if not WINDOWS:
+                        port_name = f"/dev/{port_name}"
+                        try:
+                            subprocess.run(["/opt/victronenergy/serial-starter/stop-tty.sh", port.name])
+                        except subprocess.CalledProcessError as e:
+                            # Handle cases where the command fails
+                            print(f"stop serial starter command CalledProcessError with return code: {e.returncode}")
+                        except FileNotFoundError:
+                            # Handle case where the script is not found
+                            print("The stop serial starter command or script does not exist. Please check the path.")
+                    ser.port = port_name
+                    print(f"Found Module M on {port_name}")
+                    ser.open()
+                    in_waiting = self.ser.in_waiting
+                    ready = in_waiting > 0
+                    break
+            else:
+                print("Module M not found")
+                return False
 
         if not ready and self.datagram == b'':
             # print('no data ready')
@@ -118,6 +120,16 @@ class ModuleM:
                 return False
         if len(self.datagram) < 41: # too short
             print('too short datagram: ', self.datagram)
+            return False
+        
+        if not self.mmregistered and time.time() - self.mmregistered_last_register_request > 5:
+            self.mmregistered_last_register_request = time.time()
+            print("Registering VictronGX, sending *A")
+            try:
+                self.ser.write(b'*A\n') # RegisterVictronGX_sendBackConfirmation
+            except serial.SerialException as e:
+                logging.error('Could not write to serial port: %s', e.args[0])
+                self._connect_serial() # try to reconnect, if the serial port is disconnected set mmregistered to False
             return False
         
         return True
@@ -175,34 +187,7 @@ class ModuleM:
             self.mmdata.P1 = unpacked_data[11]
             self.mmdata.P2 = unpacked_data[12]
             self.mmdata.P3 = unpacked_data[13]
-            print("got new data: ", self.mmdata)
-
-    def _connect_serial(self):
-        if self.ser:
-            self.ser.close()
-            self.mmregistered = False
-        
-        for port in serial.tools.list_ports.comports():
-            if port.vid == VID and port.pid == PID:
-                port_name = port.name
-                if not WINDOWS:
-                    port_name = f"/dev/{port_name}"
-                    # make serial-starter ignore this port, and let us do our thing!
-                    try:
-                        subprocess.run(["/opt/victronenergy/serial-starter/stop-tty.sh", port.name])
-                    except subprocess.CalledProcessError as e:
-                        # Handle cases where the command fails
-                        print(f"stop serial starter command CalledProcessError with return code: {e.returncode}")
-                    except FileNotFoundError:
-                        # Handle case where the script is not found
-                        print("The stop serial starter command or script does not exist. Please check the path.")
-                ser.port = port_name
-                print(f"Found Module M on {port_name}")
-                ser.open()
-                return True
-        
-        return False
-        
+            print("got new data: ", self.mmdata)       
 
 
 if __name__ == "__main__":
