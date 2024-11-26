@@ -100,6 +100,15 @@ class ModuleM:
             else:
                 print("Module M not found")
                 return False
+            
+        if not self.mmregistered and time.time() - self.mmregistered_last_register_request > 5:
+            self.mmregistered_last_register_request = time.time()
+            print("Registering VictronGX, sending *A")
+            try:
+                self.ser.write(b'*A\n') # RegisterVictronGX_sendBackConfirmation
+            except serial.SerialException as e:
+                logging.error('Could not write to serial port: %s', e.args[0])
+            return False
 
         if not ready and self.datagram == b'':
             # print('no data ready')
@@ -119,16 +128,6 @@ class ModuleM:
                 return False
         if len(self.datagram) < 41: # too short
             print('too short datagram: ', self.datagram)
-            return False
-        
-        if not self.mmregistered and time.time() - self.mmregistered_last_register_request > 5:
-            self.mmregistered_last_register_request = time.time()
-            print("Registering VictronGX, sending *A")
-            try:
-                self.ser.write(b'*A\n') # RegisterVictronGX_sendBackConfirmation
-            except serial.SerialException as e:
-                logging.error('Could not write to serial port: %s', e.args[0])
-                self._connect_serial() # try to reconnect, if the serial port is disconnected set mmregistered to False
             return False
         
         return True
