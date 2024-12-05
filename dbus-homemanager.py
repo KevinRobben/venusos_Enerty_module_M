@@ -83,7 +83,7 @@ class DbusENERTYService:
                 single_phase = False
             if self.module_m.mmdata.I1 == 0 and self.module_m.mmdata.U1 == 0:
                 print("No data received from Module M")
-                return
+                return True
             
             # Calculate the total current
             if single_phase:
@@ -128,6 +128,7 @@ class DbusENERTYService:
                 self._dbusservice['/Ac/L1/Energy/Reverse'] = round(self.module_m.mmdata.energy_reverse / 3, 3)
                 self._dbusservice['/Ac/L2/Energy/Reverse'] = round(self.module_m.mmdata.energy_reverse / 3, 3)
                 self._dbusservice['/Ac/L3/Energy/Reverse'] = round(self.module_m.mmdata.energy_reverse / 3, 3)
+        return True
 
     def _handle_changed_value(self, value):
         logging.debug(f"Object {self} has been changed to {value}")
