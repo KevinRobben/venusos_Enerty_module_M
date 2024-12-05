@@ -81,6 +81,9 @@ class DbusENERTYService:
                 single_phase = True
             else:
                 single_phase = False
+            if self.module_m.mmdata.I1 == 0 and self.module_m.mmdata.U1 == 0:
+                print("No data received from Module M")
+                return False
             
             # Calculate the total current
             if single_phase:
