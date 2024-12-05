@@ -1,3 +1,4 @@
+import copy
 import select
 import struct
 import logging
@@ -46,6 +47,8 @@ class VictronSerialAmpsAndVoltage:
         self.P1: int = 0 # Watt
         self.P2: int = 0
         self.P3: int = 0 
+        self.energy_forward: int = 0 # Wh
+        self.energy_reverse: int = 0
     
     def set_all_to_zero(self):
         self.I1 = 0
@@ -59,7 +62,7 @@ class VictronSerialAmpsAndVoltage:
         self.P3 = 0
 
     def __str__(self) -> str:
-        return f"command: {self.command}, AC Phase L1: {self.U1 / 1000}V {self.I1 / 1000}A {self.P1 / 1000}W. AC Phase L2: {self.U2 / 1000}V {self.I2 / 1000}A {self.P2 / 1000}W. AC Phase L3: {self.U3 / 1000}V {self.I3 / 1000}A {self.P3 / 1000}W"
+        return f"command: {self.command}, AC Phase L1: {self.U1 / 1000}V {self.I1 / 1000}A {self.P1 / 1000}W. AC Phase L2: {self.U2 / 1000}V {self.I2 / 1000}A {self.P2 / 1000}W. AC Phase L3: {self.U3 / 1000}V {self.I3 / 1000}A {self.P3 / 1000}W  -  ENERGY -> Forward: {self.energy_forward / 1000}kWh. Deverse: {self.energy_reverse / 1000}kWh"
 
 
 class ModuleM:
@@ -67,6 +70,7 @@ class ModuleM:
     def __init__(self):
         self.ser = serial.Serial(None, 9600, timeout=0, rtscts=False, dsrdtr=False, xonxoff=False)
         self.datagram = b""
+        self.serialnumber = None
         self.mmdata = VictronSerialAmpsAndVoltage()
         self.mmregistered = False # module m registered with *B command
         self.last_update = time.time()
@@ -119,19 +123,10 @@ class ModuleM:
 
         self.datagram += self.ser.read(in_waiting)
         while len(self.datagram) > 1 and self.datagram[:1] != b'*': # remove garbage data
-            print('removing garbage data: ', self.datagram[:1])
+            # print('removing garbage data: ', self.datagram[:1])
             self.datagram = self.datagram[1:]
         if len(self.datagram) == 1 and self.datagram[0] != b'*': # remove garbage data
             self.datagram = b""
-
-        if len(self.datagram) >= 2 and self.datagram[0:2] == b'*B': # RegisterVictronGXConfirmation
-                self.mmregistered = True
-                self.datagram = self.datagram[2:]
-                print("Module M registered")
-                return False
-        if len(self.datagram) < 41: # too short
-            print('too short datagram: ', self.datagram)
-            return False
         
         return True
 
@@ -140,18 +135,28 @@ class ModuleM:
         if self.datagram[:1] != b'*':
             print('wrong magic start: ', self.datagram)
             self.datagram = self.datagram[1:]
-            return
+            return False
         
-        if self.datagram[1:2] not in [b"B", b"C"]:
+        if self.datagram[1:2] not in [b"B", b"C", b"D"]:
             print('command not recognized: ', self.datagram)
             self.datagram = self.datagram[2:]
-            return
+            return False
         self.last_update = time.time()
         
         if not self.mmregistered:
-            print('module m not registered, trowing away data', self.datagram)
+            # search for the registration command inside the datagram
+            while len(self.datagram) > 2 and self.datagram[:2] != b'*B': # remove garbage data until we find RegisterVictronGXConfirmation
+                self.datagram = self.datagram[1:]
+
+            if len(self.datagram) >= 15:
+                self.mmregistered = True
+                self.datagram = self.datagram[2:15]
+                self.serialnumber = copy.deepcopy(self.datagram)
+                print("Module M registered")
+                return False
+            print('module m not registered, trowing away data')
             self.datagram = b""
-            return
+            return False
 
         if self.datagram[:2] == b'*C':  # AmpsAndVoltage
             """struct VictronSerialAmpsAndVoltage {
@@ -170,6 +175,9 @@ class ModuleM:
                         uint32_t P2;
                         uint32_t P3;
                     };"""
+            if len(self.datagram) < 41:
+                print('not enough data: ', self.datagram)
+                return False
             print(f"Unpacked data length: {len(self.datagram)}")
             # Parse the data. the recieved data is in the form of the above c struct
             unpacked_data = struct.unpack("=2B3B9I", self.datagram[0:41])
@@ -188,8 +196,45 @@ class ModuleM:
             self.mmdata.P1 = unpacked_data[11]
             self.mmdata.P2 = unpacked_data[12]
             self.mmdata.P3 = unpacked_data[13]
-            print("got new data: ", self.mmdata)       
+            # do not alter energy values. They stay the same until new *D data is received
+            print("got new data: ", self.mmdata)    
+            return True   
+        
+        if self.datagram[:2] == b'*D':  # Energy
+            """struct VictronSerialAmpsVoltageAndEnergy {
+                        struct VictronSerialAmpsAndVoltage ampsAndVoltage;
+                        uint32_t energy_delivered; // Wh
+                        uint32_t energy_returned; // Wh
+                    };"""
+            if len(self.datagram) < 49:
+                print('not enough data: ', self.datagram)
+                return False
+            print(f"Unpacked data length: {len(self.datagram)}")
+            # Parse the data. the recieved data is in the form of the above c struct
+            unpacked_data = struct.unpack("=2B3B9I2I", self.datagram[0:49])
+            self.datagram = self.datagram[41:]
 
+            self.mmdata.command = unpacked_data[1]
+            self.mmdata.export_CT1 = bool(unpacked_data[2])
+            self.mmdata.export_CT2 = bool(unpacked_data[3])
+            self.mmdata.export_CT3 = bool(unpacked_data[4])
+            self.mmdata.I1 = unpacked_data[5]
+            self.mmdata.I2 = unpacked_data[6]
+            self.mmdata.I3 = unpacked_data[7]
+            self.mmdata.U1 = unpacked_data[8]
+            self.mmdata.U2 = unpacked_data[9]
+            self.mmdata.U3 = unpacked_data[10]
+            self.mmdata.P1 = unpacked_data[11]
+            self.mmdata.P2 = unpacked_data[12]
+            self.mmdata.P3 = unpacked_data[13]
+            self.mmdata.energy_forward = unpacked_data[14]
+            self.mmdata.energy_reverse = unpacked_data[15]
+            print("got new data: ", self.mmdata)    
+            return True   
+        
+        print("unknown command: ", self.datagram)
+        self.datagram = b""
+        return False
 
 if __name__ == "__main__":
     sma = ModuleM()
@@ -197,12 +242,12 @@ if __name__ == "__main__":
             print(port.vid, port.pid, "desc", port.name)
     
     while True:
-        if sma._read_data():
-            sma._decode_data()
-            print(sma.hmdata)
+        if sma._read_data() and sma._decode_data():
+            # print(sma.mmdata)
+            pass
         else:
             if sma.last_update + 5 < time.time():
                 print('not updated for 5 seconds')
-                sma.hmdata = {}
+                sma.mmdata.set_all_to_zero()
         time.sleep(1)
     
