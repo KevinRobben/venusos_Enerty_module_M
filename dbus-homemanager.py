@@ -40,9 +40,9 @@ class DbusENERTYService:
         self._dbusservice.add_path('/ProductId', 45058)  # value used in ac_sensor_bridge.cpp of dbus-cgwacs
         self._dbusservice.add_path('/ProductName', productname)
         # self._dbusservice.add_path('/FirmwareVersion', self.home_manager.hmdata['fw_version'])
-        self._dbusservice.add_path('/HardwareVersion', None)
+        self._dbusservice.add_path('/HardwareVersion', 0)
         self._dbusservice.add_path('/Connected', 1)
-        # self._dbusservice.add_path('/Serial', None)
+        self._dbusservice.add_path('/Serial', "00000000000")
         self._dbusservice.add_path('/Ac/Power', 0, gettextcallback=self._get_text_for_w)
         self._dbusservice.add_path('/Ac/L1/Voltage', 0, gettextcallback=self._get_text_for_v)
         self._dbusservice.add_path('/Ac/L2/Voltage', 0, gettextcallback=self._get_text_for_v)
@@ -72,7 +72,7 @@ class DbusENERTYService:
                 self._dbusservice['/Mgmt/Connection'] = self.module_m.ser.portstr
                 self.module_m.new_port_name = False
             if self.module_m.new_serialnumber:
-                self._dbusservice['/HardwareVersion'] = self.module_m.serialnumber
+                self._dbusservice['/Serial'] = self.module_m.serialnumber
                 self.module_m.new_serialnumber = False
         else:
             if time.time() - self.module_m.last_update > 10:
