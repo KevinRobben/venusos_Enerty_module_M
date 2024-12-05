@@ -53,12 +53,13 @@ class DbusENERTYService:
         self._dbusservice.add_path('/Ac/L1/Power', 0, gettextcallback=self._get_text_for_w)
         self._dbusservice.add_path('/Ac/L2/Power', 0, gettextcallback=self._get_text_for_w)
         self._dbusservice.add_path('/Ac/L3/Power', 0, gettextcallback=self._get_text_for_w)
-        # self._dbusservice.add_path('/Ac/L1/Energy/Forward', 0, gettextcallback=self._get_text_for_kwh)
-        # self._dbusservice.add_path('/Ac/L2/Energy/Forward', 0, gettextcallback=self._get_text_for_kwh)
-        # self._dbusservice.add_path('/Ac/L3/Energy/Forward', 0, gettextcallback=self._get_text_for_kwh)
-        # self._dbusservice.add_path('/Ac/L1/Energy/Reverse', 0, gettextcallback=self._get_text_for_kwh)
-        # self._dbusservice.add_path('/Ac/L2/Energy/Reverse', 0, gettextcallback=self._get_text_for_kwh)
-        # self._dbusservice.add_path('/Ac/L3/Energy/Reverse', 0, gettextcallback=self._get_text_for_kwh)
+
+        self._dbusservice.add_path('/Ac/L1/Energy/Forward', 0, gettextcallback=self._get_text_for_kwh)
+        self._dbusservice.add_path('/Ac/L2/Energy/Forward', 0, gettextcallback=self._get_text_for_kwh)
+        self._dbusservice.add_path('/Ac/L3/Energy/Forward', 0, gettextcallback=self._get_text_for_kwh)
+        self._dbusservice.add_path('/Ac/L1/Energy/Reverse', 0, gettextcallback=self._get_text_for_kwh)
+        self._dbusservice.add_path('/Ac/L2/Energy/Reverse', 0, gettextcallback=self._get_text_for_kwh)
+        self._dbusservice.add_path('/Ac/L3/Energy/Reverse', 0, gettextcallback=self._get_text_for_kwh)
         self._dbusservice.add_path('/Ac/Energy/Forward', 0, gettextcallback=self._get_text_for_kwh)
         self._dbusservice.add_path('/Ac/Energy/Reverse', 0, gettextcallback=self._get_text_for_kwh)
         self._dbusservice.add_path('/Ac/Current', 0, gettextcallback=self._get_text_for_a)
@@ -76,7 +77,7 @@ class DbusENERTYService:
 
         with contextlib.suppress(KeyError):
             # Check if the Home Manager is single phase or three phase
-            if self.module_m.mmdata.I2 == 0 and self.module_m.mmdata.I3 == 0:
+            if self.module_m.mmdata.I2 == 0 and self.module_m.mmdata.I3 == 0 and self.module_m.mmdata.U2 == 0 and self.module_m.mmdata.U3 == 0:
                 single_phase = True
             else:
                 single_phase = False
@@ -110,12 +111,20 @@ class DbusENERTYService:
             self._dbusservice['/Ac/L2/Power'] = P2 / 1000
             self._dbusservice['/Ac/L3/Power'] = P3 / 1000
             
-            # self._dbusservice['/Ac/L1/Energy/Forward'] = self.module_m.hmdata.get('positive_active_energy_L1', 0)
-            # self._dbusservice['/Ac/L2/Energy/Forward'] = self.module_m.hmdata.get('positive_active_energy_L2', 0)
-            # self._dbusservice['/Ac/L3/Energy/Forward'] = self.module_m.hmdata.get('positive_active_energy_L3', 0)
-            # self._dbusservice['/Ac/L1/Energy/Reverse'] = self.module_m.hmdata.get('negative_active_energy_L1', 0)
-            # self._dbusservice['/Ac/L2/Energy/Reverse'] = self.module_m.hmdata.get('negative_active_energy_L2', 0)
-            # self._dbusservice['/Ac/L3/Energy/Reverse'] = self.module_m.hmdata.get('negative_active_energy_L3', 0)
+            if single_phase:
+                self._dbusservice['/Ac/L1/Energy/Forward'] = self.module_m.mmdata.energy_forward
+                self._dbusservice['/Ac/L2/Energy/Forward'] = 0
+                self._dbusservice['/Ac/L3/Energy/Forward'] = 0
+                self._dbusservice['/Ac/L1/Energy/Reverse'] = self.module_m.mmdata.energy_reverse
+                self._dbusservice['/Ac/L2/Energy/Reverse'] = 0
+                self._dbusservice['/Ac/L3/Energy/Reverse'] = 0
+            else:
+                self._dbusservice['/Ac/L1/Energy/Forward'] = self.module_m.mmdata.energy_forward / 3
+                self._dbusservice['/Ac/L2/Energy/Forward'] = self.module_m.mmdata.energy_forward / 3
+                self._dbusservice['/Ac/L3/Energy/Forward'] = self.module_m.mmdata.energy_forward / 3
+                self._dbusservice['/Ac/L1/Energy/Reverse'] = self.module_m.mmdata.energy_reverse / 3
+                self._dbusservice['/Ac/L2/Energy/Reverse'] = self.module_m.mmdata.energy_reverse / 3
+                self._dbusservice['/Ac/L3/Energy/Reverse'] = self.module_m.mmdata.energy_reverse / 3
         return True
 
     def _handle_changed_value(self, value):
