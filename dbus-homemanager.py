@@ -119,12 +119,12 @@ class DbusENERTYService:
                 self._dbusservice['/Ac/L2/Energy/Reverse'] = 0
                 self._dbusservice['/Ac/L3/Energy/Reverse'] = 0
             else:
-                self._dbusservice['/Ac/L1/Energy/Forward'] = self.module_m.mmdata.energy_forward / 3
-                self._dbusservice['/Ac/L2/Energy/Forward'] = self.module_m.mmdata.energy_forward / 3
-                self._dbusservice['/Ac/L3/Energy/Forward'] = self.module_m.mmdata.energy_forward / 3
-                self._dbusservice['/Ac/L1/Energy/Reverse'] = self.module_m.mmdata.energy_reverse / 3
-                self._dbusservice['/Ac/L2/Energy/Reverse'] = self.module_m.mmdata.energy_reverse / 3
-                self._dbusservice['/Ac/L3/Energy/Reverse'] = self.module_m.mmdata.energy_reverse / 3
+                self._dbusservice['/Ac/L1/Energy/Forward'] = round(self.module_m.mmdata.energy_forward / 3, 3)
+                self._dbusservice['/Ac/L2/Energy/Forward'] = round(self.module_m.mmdata.energy_forward / 3, 3)
+                self._dbusservice['/Ac/L3/Energy/Forward'] = round(self.module_m.mmdata.energy_forward / 3, 3)
+                self._dbusservice['/Ac/L1/Energy/Reverse'] = round(self.module_m.mmdata.energy_reverse / 3, 3)
+                self._dbusservice['/Ac/L2/Energy/Reverse'] = round(self.module_m.mmdata.energy_reverse / 3, 3)
+                self._dbusservice['/Ac/L3/Energy/Reverse'] = round(self.module_m.mmdata.energy_reverse / 3, 3)
         return True
 
     def _handle_changed_value(self, value):
