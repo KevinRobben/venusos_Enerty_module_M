@@ -70,8 +70,8 @@ class DbusENERTYService:
         if self.module_m._read_data() and self.module_m._decode_data():
             pass
         else:
-            if time.time() - self.module_m.last_update > 20:
-                logging.error('No data received from Module M for 20 seconds, setting all values to zero')
+            if time.time() - self.module_m.last_update > 10:
+                logging.error('No data received from Module M for 10 seconds, setting all values to zero')
                 self.module_m.mmdata.set_all_to_zero()
                 self.module_m.last_update = time.time()
 
@@ -81,9 +81,6 @@ class DbusENERTYService:
                 single_phase = True
             else:
                 single_phase = False
-            if self.module_m.mmdata.I1 == 0 and self.module_m.mmdata.U1 == 0:
-                print("No data received from Module M")
-                return True
             
             # Calculate the total current
             if single_phase:
@@ -114,6 +111,9 @@ class DbusENERTYService:
             self._dbusservice['/Ac/L2/Power'] = P2 / 1000
             self._dbusservice['/Ac/L3/Power'] = P3 / 1000
             
+            # return here if all values are set to zero. This way the AC totals are not updated and still visible in the dbus
+            if self.module_m.mmdata.I1 == 0 and self.module_m.mmdata.U1 == 0:
+                return True
             if single_phase:
                 self._dbusservice['/Ac/L1/Energy/Forward'] = self.module_m.mmdata.energy_forward
                 self._dbusservice['/Ac/L2/Energy/Forward'] = 0
