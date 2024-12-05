@@ -72,7 +72,10 @@ class DbusENERTYService:
                 self._dbusservice['/Mgmt/Connection'] = self.module_m.ser.portstr
                 self.module_m.new_port_name = False
             if self.module_m.new_serialnumber:
-                self._dbusservice['/Serial'] = self.module_m.serialnumber
+                try:
+                    self._dbusservice['/Serial'] = self.module_m.serialnumber.decode('utf-8')
+                except Exception as e:
+                    logging.error(f"Error setting serial number: {e}")
                 self.module_m.new_serialnumber = False
         else:
             if time.time() - self.module_m.last_update > 10:

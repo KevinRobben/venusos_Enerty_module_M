@@ -155,7 +155,7 @@ class ModuleM:
 
             if len(self.datagram) >= 15:
                 self.mmregistered = True
-                self.datagram = self.datagram[2:15]
+                self.datagram = self.datagram[2:13]
                 self.serialnumber = copy.deepcopy(self.datagram)
                 self.new_serialnumber = True
                 print("Module M registered")
