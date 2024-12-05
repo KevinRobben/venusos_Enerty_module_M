@@ -83,7 +83,7 @@ class DbusENERTYService:
             
             # Calculate the total current
             if single_phase:
-                current = self.module_m.mmdata.I1
+                current = round(self.module_m.mmdata.I1 / 1000, 3)
             else:
                 current = round((self.module_m.mmdata.I1 + self.module_m.mmdata.I2 +
                                 self.module_m.mmdata.I3) / 1000, 3)
