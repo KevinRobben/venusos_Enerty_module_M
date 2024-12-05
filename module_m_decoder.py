@@ -113,7 +113,7 @@ class ModuleM:
                 print("Module M not found")
                 return False
             
-        if not self.mmregistered and time.time() - self.mmregistered_last_register_request > 5:
+        if not self.mmregistered and time.time() - self.mmregistered_last_register_request > 2:
             self.mmregistered_last_register_request = time.time()
             print("Registering VictronGX, sending *A")
             try:
