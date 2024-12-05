@@ -67,8 +67,8 @@ class DbusENERTYService:
         gobject.timeout_add(450, self._update)
 
     def _update(self):
-        if self.module_m._read_data():
-            self.module_m._decode_data()
+        if self.module_m._read_data() and self.module_m._decode_data():
+            pass
         else:
             if time.time() - self.module_m.last_update > 20:
                 logging.error('No data received from Module M for 20 seconds, setting all values to zero')
