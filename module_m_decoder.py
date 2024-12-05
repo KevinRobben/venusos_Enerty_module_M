@@ -157,6 +157,7 @@ class ModuleM:
                 self.mmregistered = True
                 self.datagram = self.datagram[2:15]
                 self.serialnumber = copy.deepcopy(self.datagram)
+                self.new_serialnumber = True
                 print("Module M registered")
                 return False
             print('module m not registered, trowing away data')
