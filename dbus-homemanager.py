@@ -68,20 +68,24 @@ class DbusENERTYService:
 
     def _update(self):
         if self.module_m._read_data() and self.module_m._decode_data():
-            if self.module_m.new_port_name:
-                self._dbusservice['/Mgmt/Connection'] = self.module_m.ser.portstr
-                self.module_m.new_port_name = False
-            if self.module_m.new_serialnumber:
-                try:
-                    self._dbusservice['/Serial'] = self.module_m.serialnumber.decode('utf-8')
-                except Exception as e:
-                    logging.error(f"Error setting serial number: {e}")
-                self.module_m.new_serialnumber = False
+            pass
         else:
             if time.time() - self.module_m.last_update > 10:
                 logging.error('No data received from Module M for 10 seconds, setting all values to zero')
                 self.module_m.mmdata.set_all_to_zero()
                 self.module_m.last_update = time.time()
+        
+        # settings or errors from the module_m object
+        if self.module_m.new_port_name:
+            self._dbusservice['/Mgmt/Connection'] = self.module_m.ser.portstr
+            self.module_m.new_port_name = False
+        if self.module_m.new_serialnumber:
+            try:
+                self._dbusservice['/Serial'] = self.module_m.serialnumber.decode('utf-8')
+            except Exception as e:
+                logging.error(f"Error setting serial number: {e}")
+            self.module_m.new_serialnumber = False
+
 
         with contextlib.suppress(KeyError):
             # Check if the Home Manager is single phase or three phase
