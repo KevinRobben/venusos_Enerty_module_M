@@ -76,6 +76,10 @@ class ModuleM:
         self.last_update = time.time()
         self.mmregistered_last_register_request = time.time()
 
+        # communication signals for dbus-homemanager
+        self.new_port_name = False
+        self.new_serialnumber = False
+
     def _read_data(self):
         try:
             in_waiting = self.ser.in_waiting
@@ -99,6 +103,7 @@ class ModuleM:
                             # Handle case where the script is not found
                             print("The stop serial starter command or script does not exist. Please check the path.")
                     self.ser.port = port_name
+                    self.new_port_name = True
                     print(f"Found Module M on {port_name}")
                     self.ser.open()
                     in_waiting = self.ser.in_waiting
