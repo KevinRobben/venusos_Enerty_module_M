@@ -96,8 +96,8 @@ class DbusENERTYService:
 
             self._dbusservice['/Ac/Power'] = (P1 + P2 + P3) / 1000  #kw
             
-            self._dbusservice['/Ac/Energy/Forward'] = self.module_m.mmdata.energy_forward / 1000 #kWh
-            self._dbusservice['/Ac/Energy/Reverse'] = self.module_m.mmdata.energy_reverse / 1000
+            self._dbusservice['/Ac/Energy/Forward'] = self.module_m.mmdata.energy_forward  #Wh
+            self._dbusservice['/Ac/Energy/Reverse'] = self.module_m.mmdata.energy_reverse
 
             self._dbusservice['/Ac/L1/Voltage'] = self.module_m.mmdata.U1 / 1000
             self._dbusservice['/Ac/L2/Voltage'] = self.module_m.mmdata.U2 / 1000
