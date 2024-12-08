@@ -109,8 +109,8 @@ class DbusENERTYService:
 
             self._dbusservice['/Ac/Power'] = (P1 + P2 + P3) / 1000  #kw
             
-            self._dbusservice['/Ac/Energy/Forward'] = self.module_m.mmdata.energy_forward  #Wh
-            self._dbusservice['/Ac/Energy/Reverse'] = self.module_m.mmdata.energy_reverse
+            self._dbusservice['/Ac/Energy/Forward'] = self.module_m.mmdata.energy_forward / 1000  #kWh
+            self._dbusservice['/Ac/Energy/Reverse'] = self.module_m.mmdata.energy_reverse / 1000
 
             self._dbusservice['/Ac/L1/Voltage'] = self.module_m.mmdata.U1 / 1000
             self._dbusservice['/Ac/L2/Voltage'] = self.module_m.mmdata.U2 / 1000
@@ -127,19 +127,19 @@ class DbusENERTYService:
             if self.module_m.mmdata.I1 == 0 and self.module_m.mmdata.U1 == 0:
                 return True
             if single_phase:
-                self._dbusservice['/Ac/L1/Energy/Forward'] = self.module_m.mmdata.energy_forward
+                self._dbusservice['/Ac/L1/Energy/Forward'] = self.module_m.mmdata.energy_forward / 1000
                 self._dbusservice['/Ac/L2/Energy/Forward'] = 0
                 self._dbusservice['/Ac/L3/Energy/Forward'] = 0
-                self._dbusservice['/Ac/L1/Energy/Reverse'] = self.module_m.mmdata.energy_reverse
+                self._dbusservice['/Ac/L1/Energy/Reverse'] = self.module_m.mmdata.energy_reverse / 1000
                 self._dbusservice['/Ac/L2/Energy/Reverse'] = 0
                 self._dbusservice['/Ac/L3/Energy/Reverse'] = 0
             else:
-                self._dbusservice['/Ac/L1/Energy/Forward'] = round(self.module_m.mmdata.energy_forward / 3, 3)
-                self._dbusservice['/Ac/L2/Energy/Forward'] = round(self.module_m.mmdata.energy_forward / 3, 3)
-                self._dbusservice['/Ac/L3/Energy/Forward'] = round(self.module_m.mmdata.energy_forward / 3, 3)
-                self._dbusservice['/Ac/L1/Energy/Reverse'] = round(self.module_m.mmdata.energy_reverse / 3, 3)
-                self._dbusservice['/Ac/L2/Energy/Reverse'] = round(self.module_m.mmdata.energy_reverse / 3, 3)
-                self._dbusservice['/Ac/L3/Energy/Reverse'] = round(self.module_m.mmdata.energy_reverse / 3, 3)
+                self._dbusservice['/Ac/L1/Energy/Forward'] = round(self.module_m.mmdata.energy_forward / 3000, 3)
+                self._dbusservice['/Ac/L2/Energy/Forward'] = round(self.module_m.mmdata.energy_forward / 3000, 3)
+                self._dbusservice['/Ac/L3/Energy/Forward'] = round(self.module_m.mmdata.energy_forward / 3000, 3)
+                self._dbusservice['/Ac/L1/Energy/Reverse'] = round(self.module_m.mmdata.energy_reverse / 3000, 3)
+                self._dbusservice['/Ac/L2/Energy/Reverse'] = round(self.module_m.mmdata.energy_reverse / 3000, 3)
+                self._dbusservice['/Ac/L3/Energy/Reverse'] = round(self.module_m.mmdata.energy_reverse / 3000, 3)
         return True # Return True to keep looping
 
     def _handle_changed_value(self, value):
@@ -147,16 +147,16 @@ class DbusENERTYService:
         return True # Return True to keep looping
 
     def _get_text_for_kwh(self, path, value):
-        return "%.3FkWh" % (float(value) / 1000.0)
+        return "%.2FkWh" % (float(value))
 
     def _get_text_for_w(self, path, value):
-        return "%.1FW" % (float(value))
+        return "%iW" % (float(value))
 
     def _get_text_for_v(self, path, value):
         return "%.2FV" % (float(value))
 
     def _get_text_for_a(self, path, value):
-        return "%.2FA" % (float(value))
+        return "%.1FA" % (float(value))
 
 
 if __name__ == "__main__":
