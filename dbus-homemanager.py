@@ -67,7 +67,20 @@ class DbusENERTYService:
 
         gobject.timeout_add(300, self._update)
 
+        self.last_error_switch = time.time()
+
     def _update(self):
+
+        # Check for errors every 10 seconds
+        if time.time() - self.last_error_switch > 10:
+            if len(self.module_m.errors) == 0:
+                self._dbusservice['/ErrorCode'] = None
+            else:
+                if self.module_m.errors_show_index > len(self.module_m.errors) - 1:
+                    self.module_m.errors_show_index = 0
+                self._dbusservice['/ErrorCode'] = self.module_m.errors[self.module_m.errors_show_index]
+                self.module_m.errors_show_index += 1
+
         if self.module_m._read_data() and self.module_m._decode_data():
             pass
         else:

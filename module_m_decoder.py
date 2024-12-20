@@ -49,6 +49,7 @@ class VictronSerialAmpsAndVoltage:
         self.P3: int = 0 
         self.energy_forward: int = 0 # Wh
         self.energy_reverse: int = 0
+        
     
     def set_all_to_zero(self):
         self.I1 = 0
@@ -79,6 +80,8 @@ class ModuleM:
         # communication signals for dbus-homemanager
         self.new_port_name = False
         self.new_serialnumber = False
+        self.errors = []
+        self.errors_show_index = 0 # the current displayed error in victron
 
     def _read_data(self):
         try:
@@ -142,7 +145,7 @@ class ModuleM:
             self.datagram = self.datagram[1:]
             return False
         
-        if self.datagram[1:2] not in [b"B", b"C", b"D"]:
+        if self.datagram[1:2] not in [b"B", b"C", b"D", b"E"]:
             print('command not recognized: ', self.datagram)
             self.datagram = self.datagram[2:]
             return False
@@ -163,6 +166,32 @@ class ModuleM:
             print('module m not registered, trowing away data')
             self.datagram = b""
             return False
+
+        if self.datagram[:2] == b'*E':  # Errors
+            """struct VictronSerialErrorCodes {
+                uint8_t magic_start;
+                uint8_t command;
+                uint8_t errorCodeLines; // the amount of lines that follow (\n) with error messages
+            };"""
+            if len(self.datagram) < 3:
+                print('not enough data: ', self.datagram)
+                return False
+            print(f"Unpacked data length: {len(self.datagram)}")
+            # Parse the data. the recieved data is in the form of the above c struct
+            unpacked_data = struct.unpack("=3B", self.datagram[0:3])
+            if (unpacked_data[2] == 0):
+                self.errors = []
+                self.datagram = self.datagram[3:]
+                return False
+            if len(self.datagram.split(b"\n")) < unpacked_data[2]:
+                print('not enough data: ', self.datagram)
+                return False
+            self.datagram = self.datagram[3:]
+            self.errors = self.datagram.split(b"\n")
+            self.datagram = b"" # remove any extra data
+            self.errors[:unpacked_data[2]] # remove any extra data          
+              
+            
 
         if self.datagram[:2] == b'*C':  # AmpsAndVoltage
             """struct VictronSerialAmpsAndVoltage {
