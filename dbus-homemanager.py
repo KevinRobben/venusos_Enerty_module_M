@@ -73,6 +73,7 @@ class DbusENERTYService:
 
         # Check for errors every 10 seconds
         if time.time() - self.last_error_switch > 10:
+            self.last_error_switch = time.time()
             if len(self.module_m.errors) == 0:
                 self._dbusservice['/ErrorCode'] = None
             else:
