@@ -43,6 +43,7 @@ class DbusENERTYService:
         self._dbusservice.add_path('/HardwareVersion', 0)
         self._dbusservice.add_path('/Connected', 1)
         self._dbusservice.add_path('/Serial', "00000000000")
+        self._dbusservice.add_path('/ErrorCode', 'No Errors detected. This is just a test\nmaybe this should be on the second line?. Or maybe not, who knows?\nThis is a third error.\nThis is a fourth error.')
         self._dbusservice.add_path('/Ac/Power', 0, gettextcallback=self._get_text_for_w)
         self._dbusservice.add_path('/Ac/L1/Voltage', 0, gettextcallback=self._get_text_for_v)
         self._dbusservice.add_path('/Ac/L2/Voltage', 0, gettextcallback=self._get_text_for_v)
