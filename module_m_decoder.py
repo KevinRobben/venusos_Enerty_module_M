@@ -135,6 +135,7 @@ class ModuleM:
             self.datagram = self.datagram[1:]
         if len(self.datagram) == 1 and self.datagram[0] != b'*': # remove garbage data
             self.datagram = b""
+            return False
         
         return True
 
@@ -173,10 +174,10 @@ class ModuleM:
                 uint8_t command;
                 uint8_t errorCodeLines; // the amount of lines that follow (\n) with error messages
             };"""
+            print("recieved errors")
             if len(self.datagram) < 3:
                 print('not enough data: ', self.datagram)
                 return False
-            print(f"Unpacked data length: {len(self.datagram)}")
             # Parse the data. the recieved data is in the form of the above c struct
             unpacked_data = struct.unpack("=3B", self.datagram[0:3])
             if (unpacked_data[2] == 0):
@@ -189,7 +190,8 @@ class ModuleM:
             self.datagram = self.datagram[3:]
             self.errors = self.datagram.split(b"\n")
             self.datagram = b"" # remove any extra data
-            self.errors[:unpacked_data[2]] # remove any extra data          
+            self.errors[:unpacked_data[2]] # remove any extra data  
+            print("got ", unpacked_data[2], " new errors: ", self.errors)        
               
             
 
