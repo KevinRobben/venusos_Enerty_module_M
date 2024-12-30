@@ -157,7 +157,7 @@ class ModuleM:
             while len(self.datagram) > 2 and self.datagram[:2] != b'*B': # remove garbage data until we find RegisterVictronGXConfirmation
                 self.datagram = self.datagram[1:]
 
-            if len(self.datagram) >= 15:
+            if len(self.datagram) >= 13:
                 self.mmregistered = True
                 self.datagram = self.datagram[2:13]
                 self.serialnumber = copy.deepcopy(self.datagram)
