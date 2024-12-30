@@ -43,7 +43,7 @@ class DbusENERTYService:
         self._dbusservice.add_path('/HardwareVersion', 0)
         self._dbusservice.add_path('/Connected', 1)
         self._dbusservice.add_path('/Serial', "00000000000")
-        self._dbusservice.add_path('/ErrorCode', 'fischerpanda: - 1')
+        self._dbusservice.add_path('/ErrorCode', 'fischerpanda:e-1')
         self._dbusservice.add_path('/Ac/Power', 0, gettextcallback=self._get_text_for_w)
         self._dbusservice.add_path('/Ac/L1/Voltage', 0, gettextcallback=self._get_text_for_v)
         self._dbusservice.add_path('/Ac/L2/Voltage', 0, gettextcallback=self._get_text_for_v)
@@ -75,7 +75,7 @@ class DbusENERTYService:
         if time.time() - self.last_error_switch > 10:
             self.last_error_switch = time.time()
             if len(self.module_m.errors) == 0:
-                self._dbusservice['/ErrorCode'] = "fischerpanda: - 2"
+                self._dbusservice['/ErrorCode'] = "fischerpanda:e-2"
             else:
                 if self.module_m.errors_show_index > len(self.module_m.errors) - 1:
                     self.module_m.errors_show_index = 0
