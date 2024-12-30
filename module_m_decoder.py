@@ -164,7 +164,7 @@ class ModuleM:
                 self.new_serialnumber = True
                 print("Module M registered")
                 return False
-            print('module m not registered, trowing away data')
+            print('module m not registered, trowing away data: ', self.datagram)
             self.datagram = b""
             return False
 
@@ -188,7 +188,7 @@ class ModuleM:
             if len(errors) < unpacked_data[2]:
                 print('not enough data: ', self.datagram)
                 return False
-            self.datagram = self.datagram[3:]
+            errors[0] = errors[0][3:] # remove the first 3 bytes
             self.errors = errors[:unpacked_data[2]] # remove any extra data
             self.datagram = b"" # remove any extra data
             print("got ", unpacked_data[2], " new errors: ", self.errors)        
