@@ -184,13 +184,13 @@ class ModuleM:
                 self.errors = []
                 self.datagram = self.datagram[3:]
                 return False
-            if len(self.datagram.split(b"\n")) < unpacked_data[2]:
+            errors = self.datagram.split(b"\r\n")
+            if len(errors) < unpacked_data[2]:
                 print('not enough data: ', self.datagram)
                 return False
             self.datagram = self.datagram[3:]
-            self.errors = self.datagram.split(b"\n")
+            self.errors = errors[:unpacked_data[2]] # remove any extra data
             self.datagram = b"" # remove any extra data
-            self.errors[:unpacked_data[2]] # remove any extra data  
             print("got ", unpacked_data[2], " new errors: ", self.errors)        
               
             
