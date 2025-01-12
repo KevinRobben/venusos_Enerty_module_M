@@ -55,9 +55,9 @@ class VictronSerialAmpsAndVoltage:
         self.I1 = 0
         self.I2 = 0
         self.I3 = 0
-        self.U1 = 0
-        self.U2 = 0
-        self.U3 = 0
+        # self.U1 = 0 # let voltage be normal
+        # self.U2 = 0
+        # self.U3 = 0
         self.P1 = 0
         self.P2 = 0
         self.P3 = 0
