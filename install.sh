@@ -10,7 +10,7 @@ echo "kill \$(pgrep -f \"python $SCRIPT_DIR/dbus-homemanager.py\")" >> "$SCRIPT_
 # Run script
 mkdir -p "$SCRIPT_DIR/service"
 echo "#!/bin/bash" > "$SCRIPT_DIR/service/run"
-echo "python3 $SCRIPT_DIR/dbus-homemanager.py" >> "$SCRIPT_DIR"/service/run
+echo "python3 $SCRIPT_DIR/dbus-homemanager.py >> $SCRIPT_DIR/dbus-homemanager.log 2>&1 &" >> "$SCRIPT_DIR/service/run"
 
 echo "Marking files as executable.."
 chmod +x "$SCRIPT_DIR/dbus-homemanager.py"
