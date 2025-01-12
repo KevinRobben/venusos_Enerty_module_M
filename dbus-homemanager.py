@@ -69,6 +69,8 @@ class DbusENERTYService:
 
         self.last_error_switch = time.time()
 
+        self.timeout_errorcode_timer = 0
+
     def _update(self):
 
         # Check for errors every 10 seconds
@@ -85,10 +87,11 @@ class DbusENERTYService:
         if self.module_m._read_data() and self.module_m._decode_data():
             pass
         else:
-            if time.time() - self.module_m.last_update > 2:
+            if time.time() - self.module_m.last_update > 2 and time.time() - self.timeout_errorcode_timer > 1:
                 logging.error('No data received from Module M for 2 seconds, setting all values to zero')
                 self._dbusservice['/ErrorCode'] = f"No data received from Module M for { int(time.time() - self.module_m.last_update) } seconds" # overwrite the error code
                 self.module_m.mmdata.set_all_to_zero()
+                self.timeout_errorcode_timer = time.time() # prevents dbus messages every 300ms
         
         # settings or errors from the module_m object
         if self.module_m.new_port_name:
