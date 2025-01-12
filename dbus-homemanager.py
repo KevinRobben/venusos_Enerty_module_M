@@ -85,8 +85,9 @@ class DbusENERTYService:
         if self.module_m._read_data() and self.module_m._decode_data():
             pass
         else:
-            if time.time() - self.module_m.last_update > 10:
-                logging.error('No data received from Module M for 10 seconds, setting all values to zero')
+            if time.time() - self.module_m.last_update > 2:
+                logging.error('No data received from Module M for 2 seconds, setting all values to zero')
+                self._dbusservice['/ErrorCode'] = f"No data received from Module M for { int(time.time() - self.module_m.last_update) } seconds" # overwrite the error code
                 self.module_m.mmdata.set_all_to_zero()
                 self.module_m.last_update = time.time()
         
